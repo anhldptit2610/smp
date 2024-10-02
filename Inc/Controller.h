@@ -6,16 +6,18 @@
 #include "Player.h"
 #include "UI.h"
 #include "MediaFile.h"
+#include "Metadata.h"
 
 class Controller {
 private:
+    UI ui;
+    Player player;
+
     std::filesystem::path exePath;
     std::filesystem::path workPath;
     int mode = OPTION_PLAY_MUSIC_NORMAL;
     int fileKey;
     std::string path;
-    UI ui;
-    Player player;
     bool ok;
 
     void ParseArgument(int argc, char *argv[]);
@@ -24,8 +26,9 @@ public:
     ~Controller();
 
     void Run(void);
-    void UpdateScreen(MediaFile& mediaFile);
-    void InputHandler(MediaFile& mediaFile, int key, bool* quit);
+    void UpdateScreen(MediaFileManage& fileManage);
+    // void InputHandler(MediaFileManage& fileManage, KEY key, bool* quit);
+    void InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, std::string str = "");
     void PlayMusicFromDirectory(void);
     bool IsOK(void);
 };

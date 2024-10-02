@@ -2,8 +2,26 @@
 #define MEDIA_FILE_H_
 
 #include "Common.h"
+#include "Metadata.h"
+
 
 class MediaFile {
+private:
+    std::string path;
+    Metadata metadata;
+public:
+    /* getter/setter */
+    std::string GetPath(void);
+    Metadata& GetMetadata(void);
+
+    /* constructor/destructor */
+    MediaFile(std::string filePath);
+    ~MediaFile();
+};
+
+#define FILELIST            std::vector<std::shared_ptr<MediaFile>>
+
+class MediaFileManage {
 private:
     FILELIST list;
     int totalTrack;
@@ -19,11 +37,14 @@ public:
     void SetCurrentTrack(int n);
     std::string GetTrackPath(int n);
     FILELIST& GetMediaList(void);
+
+    void UpdateMetadata(int index, int key, std::string val);
+
     /* constructor/destructor */
-    MediaFile();
-    ~MediaFile();
+    MediaFileManage();
+    ~MediaFileManage();
 };
 
-MediaFile& GetMediaFile(void);
+MediaFileManage& GetFileManage(void);
 
 #endif

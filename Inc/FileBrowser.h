@@ -6,7 +6,6 @@
 #include <filesystem>
 #include <vector>
 
-
 void BrowsePath(std::string path);
 
 #endif

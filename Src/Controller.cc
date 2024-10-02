@@ -5,19 +5,19 @@
 
 void UpdateCurrentAndNextTrack(int n)
 {
-    MediaFile& mediaFile = GetMediaFile();
+    MediaFileManage& fileManage = GetFileManage();
 
-    mediaFile.SetCurrentTrack(n);
-    mediaFile.SetNextTrack(n + 1);
+    fileManage.SetCurrentTrack(n);
+    fileManage.SetNextTrack(n + 1);
 }
 
 void MusicFinished(void)
 {
-    MediaFile& mediaFile = GetMediaFile();
+    MediaFileManage& fileManage = GetFileManage();
 
-    mediaFile.SetNextTrack(mediaFile.GetNextTrack() + 1);
-    PlaySong(mediaFile.GetTrackPath(mediaFile.GetNextTrack()));
-    UpdateHighlight(mediaFile.GetNextTrack());
+    fileManage.SetNextTrack(fileManage.GetNextTrack() + 1);
+    PlaySong(fileManage.GetTrackPath(fileManage.GetNextTrack()));
+    UpdateHighlight(fileManage.GetNextTrack());
 }
 
 void Controller::ParseArgument(int argc, char *argv[])
@@ -39,75 +39,99 @@ void Controller::ParseArgument(int argc, char *argv[])
             BrowsePath(workPath);
             break;
         case 'e':
-            str = optarg;
-            if (!std::filesystem::is_directory(str)) {
-                std::cerr << "It's a file..." << std::endl;
+            if (optarg == NULL) {
                 ok = false;
                 return;
             }
+            str = optarg;
             workPath = str;
             mode = OPTION_EDIT_METADATA;
-
+            // ui.ResizeWindow(ui.GetMainWindow(), EDIT_METADATA_WINDOW_HEIGHT, EDIT_METADATA_WINDOW_WIDTH);
+            BrowsePath(workPath);
+            break;
         default:
             break;
         }
     }
 }
 
-void Controller::UpdateScreen(MediaFile& mediaFile)
+void Controller::UpdateScreen(MediaFileManage& fileManage)
 {
     switch (mode) {
     case OPTION_PLAY_MUSIC_DIRECTORY:
     case OPTION_PLAY_MUSIC_NORMAL:
-        ui.DirectoryLayout(mediaFile.GetMediaList());
+        ui.DirectoryLayout(fileManage.GetMediaList());
+        break;
+    case OPTION_EDIT_METADATA:
+        ui.EditMetadata(fileManage.GetMediaList());
+        break;
+    case OPTION_INPUT_STRING:
+        ui.InputString();
         break;
     default:
         break;
     }
 }
 
-void Controller::InputHandler(MediaFile& mediaFile, int key, bool* quit)
+void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, std::string str)
 {
-    switch (key) {
-    case -1:
+    switch (key.first) {
+    case UNKNOWN_KEY:
         return;
-    case KEYC_QUIT:
-        if (Mix_PlayingMusic())
-            Mix_CloseAudio();
-        *quit = true;
-        break;
-    case KEYC_PAUSE:
-        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL)
-            player.PauseTheSong();
-        break;
-    case KEYC_RESUME:
-        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL)
-            player.ResumeTheSong();
-        break;
-    case KEYC_NEXT:
-        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
-            UpdateCurrentAndNextTrack(mediaFile.GetCurrentTrack() + 1);
-            player.PlayTheSong(mediaFile.GetTrackPath(mediaFile.GetCurrentTrack()));
+    case FN_KEY:
+        switch (key.second) {
+            case KEYC_QUIT:
+                if (Mix_PlayingMusic())
+                    Mix_CloseAudio();
+                *quit = true;
+                break;
+            case KEYC_PAUSE:
+                if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL)
+                    player.PauseTheSong();
+                break;
+            case KEYC_RESUME:
+                if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL)
+                    player.ResumeTheSong();
+                break;
+            case KEYC_NEXT:
+                if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
+                    UpdateCurrentAndNextTrack(fileManage.GetCurrentTrack() + 1);
+                    player.PlayTheSong(fileManage.GetTrackPath(fileManage.GetCurrentTrack()));
+                }
+                break;
+            case KEYC_PREV:
+                if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
+                    UpdateCurrentAndNextTrack(fileManage.GetCurrentTrack() - 1);
+                    player.PlayTheSong(fileManage.GetTrackPath(fileManage.GetCurrentTrack()));
+                }
+                break;
+            case KEYC_VOLUME_DOWN:
+                player.TurnVolumeDown();
+                break;
+            case '=':
+                player.TurnVolumeUp();
+                break;
+            default:
+                break;
         }
         break;
-    case KEYC_PREV:
-        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
-            UpdateCurrentAndNextTrack(mediaFile.GetCurrentTrack() - 1);
-            player.PlayTheSong(mediaFile.GetTrackPath(mediaFile.GetCurrentTrack()));
+    case RET_KEY:
+        if (mode == OPTION_EDIT_METADATA) {
+            mode = OPTION_INPUT_STRING;
+        } else if (mode == OPTION_INPUT_STRING) {
+            fileManage.UpdateMetadata((ui.GetMainSide()) ? ui.GetLastLeftIndex() : 0, GetHighlight(), str);
+            mode = OPTION_EDIT_METADATA;
+            ui.ResizeWindow(ui.GetMainWindow(), MEDIA_LIST_WINDOW_HEIGHT, MEDIA_LIST_WINDOW_WIDTH);
+            refresh();
+        } else {
+            UpdateCurrentAndNextTrack(key.second);
+            if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
+                Mix_HookMusicFinished(MusicFinished);
+            }
+            player.PlayTheSong(fileManage.GetTrackPath(key.second));
         }
-        break;
-    case KEYC_VOLUME_DOWN:
-        player.TurnVolumeDown();
-        break;
-    case '=':
-        player.TurnVolumeUp();
         break;
     default:
-        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
-            UpdateCurrentAndNextTrack(key);
-            Mix_HookMusicFinished(MusicFinished);
-        }
-        player.PlayTheSong(mediaFile.GetTrackPath(key));
         break;
     }
 }
@@ -115,16 +139,21 @@ void Controller::InputHandler(MediaFile& mediaFile, int key, bool* quit)
 void Controller::Run(void)
 {
     bool quit = false;
-    int key;
-    MediaFile& mediaFile = GetMediaFile();
+    KEY pressKey;
+    std::string inputString = "";
+    MediaFileManage& fileManage = GetFileManage();
 
-    // player.PlayTheSong(fileBrowser.GetFilePath(0));
     while (!quit) {
-        UpdateScreen(mediaFile);
-        key = ui.GetInput();
-        InputHandler(mediaFile, key, &quit);
+        UpdateScreen(fileManage);
+        if (mode == OPTION_INPUT_STRING) {
+            inputString = ui.GetStringInput();
+        } else {
+            pressKey = ui.GetInput();
+        }
+        InputHandler(fileManage, &quit, pressKey, inputString);
     }
 }
+
 
 
 bool Controller::IsOK(void)
@@ -145,6 +174,7 @@ Controller::Controller(int argc, char *argv[]) : ui()
         workPath = exePath;
         BrowsePath(workPath);
     }
+    ui.UpdateMaxReach(GetFileManage().GetTotalTrack());
 }
 
 Controller::~Controller()

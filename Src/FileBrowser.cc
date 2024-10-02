@@ -14,26 +14,22 @@ void BrowsePath(std::string path)
 {
     namespace fs = std::filesystem;
 
-    MediaFile& mediaFile = GetMediaFile();
-    FILELIST& list = mediaFile.GetMediaList();
-
-    // std::string finalPath;
+    MediaFileManage& fileManage = GetFileManage();
+    FILELIST& list = fileManage.GetMediaList();
 
     list.clear();
 
-    // if (path == "..") {
-        // finalPath = cwd.parent_path().string();
-        // cwd = cwd.parent_path();
-        // fileList.push_back(fs::directory_entry(cwd));
-    // } else {
-        // cwd = path;
-        // finalPath = path;
-        // fileList.push_back(fs::directory_entry(cwd));
-    // }
-    // list.push_back(fs::directory_entry(".."));
-    for (const fs::directory_entry& dir_entry : fs::recursive_directory_iterator(path)) {
-        if (IsMP3File(dir_entry) || IsMP4File(dir_entry))
-            list.push_back(dir_entry);
+    if (!fs::is_directory(path)) {
+        std::shared_ptr<MediaFile> mf = std::make_shared<MediaFile>(path);
+        list.push_back(mf);
+    } else {
+        for (const fs::directory_entry& dir_entry : fs::recursive_directory_iterator(path)) {
+            if (IsMP3File(dir_entry) || IsMP4File(dir_entry)) {
+                std::shared_ptr<MediaFile> mf = std::make_shared<MediaFile>(dir_entry.path());
+                list.push_back(mf);
+            }
+        }
     }
-    mediaFile.SetTotalTrack(list.size());
+
+    fileManage.SetTotalTrack(list.size());
 }
