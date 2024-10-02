@@ -13,7 +13,13 @@ void UI::UpdateMaxReach(int _mr)
     maxReach = _mr;
 }
 
-void UI::ClearWindow(WINDOW *win)
+void UI::ClearAllWindow(WINDOW* win)
+{
+    clear();
+    wclear(win);
+}
+
+void UI::ClearWindowButBox(WINDOW *win)
 {
     clear();
     wclear(win);
@@ -48,6 +54,8 @@ int UI::GetInput(void)
     case 'b':
     case 'n':
     case 'k':
+    case '-':
+    case '=':
         return opt;
     case KEY_RETURN:
         return highlight;
@@ -67,7 +75,7 @@ void UI::DirectoryLayout(FILELIST& list)
     int y = 1;
     MediaFile& mediaFile = GetMediaFile();
 
-    ClearWindow(mainWin);
+    ClearWindowButBox(mainWin);
     for (int i = 25 * (pagination - 1); i < (25 * (pagination - 1) + 25) && i < list.size(); i++) {
         if (i == highlight)
             wattron(mainWin, A_REVERSE);
@@ -92,17 +100,20 @@ UI::UI()
     mainWin = newwin(MEDIA_LIST_WINDOW_HEIGHT, MEDIA_LIST_WINDOW_WIDTH, 0, 0);  
     keypad(mainWin, TRUE);
     box(mainWin, 0, 0);
-    refresh();
-    wrefresh(mainWin);
+    // refresh();
+    // wrefresh(mainWin);
 
     sideWin = newwin(MEDIA_LIST_WINDOW_HEIGHT, 30, 0, MEDIA_LIST_WINDOW_WIDTH);  
     keypad(sideWin, TRUE);
     box(sideWin, 0, 0);
-    refresh();
-    wrefresh(sideWin);
+    // refresh();
+    // wrefresh(sideWin);
 
     highlight = 0;
     pagination = 1;
+
+    // ClearAllWindow(mainWin);
+    // ClearAllWindow(sideWin);
 }
 
 UI::~UI()

@@ -25,14 +25,29 @@ void Controller::ParseArgument(int argc, char *argv[])
     int opt;
     std::string str;
 
-    while ((opt = getopt(argc, argv, "d:")) != -1) {
+    while ((opt = getopt(argc, argv, "d:e:")) != -1) {
         switch (opt) {
         case 'd':
-            str = optarg;
+            str = optarg;       // TODO: make a lambda function for set workPath
+            if (!std::filesystem::is_directory(str)) {
+                std::cout << "It's a file..." << std::endl;
+                ok = false;
+                return;
+            }
             workPath = str;
             mode = OPTION_PLAY_MUSIC_DIRECTORY;
             BrowsePath(workPath);
             break;
+        case 'e':
+            str = optarg;
+            if (!std::filesystem::is_directory(str)) {
+                std::cerr << "It's a file..." << std::endl;
+                ok = false;
+                return;
+            }
+            workPath = str;
+            mode = OPTION_EDIT_METADATA;
+
         default:
             break;
         }
@@ -53,29 +68,47 @@ void Controller::UpdateScreen(MediaFile& mediaFile)
 
 void Controller::InputHandler(MediaFile& mediaFile, int key, bool* quit)
 {
-    if (key == -1)
+    switch (key) {
+    case -1:
         return;
-    if (key == KEYC_QUIT) {
-        // stop all running tasks
+    case KEYC_QUIT:
         if (Mix_PlayingMusic())
             Mix_CloseAudio();
         *quit = true;
-    } else if (key == KEYC_PAUSE) {
-        player.PauseTheSong();
-    } else if (key == KEYC_RESUME) {
-        player.ResumeTheSong();
-    } else if (key == KEYC_NEXT) {
-        UpdateCurrentAndNextTrack(mediaFile.GetCurrentTrack() + 1);
-        player.PlayTheSong(mediaFile.GetTrackPath(mediaFile.GetCurrentTrack()));
-    } else if (key == KEYC_PREV) {
-        UpdateCurrentAndNextTrack(mediaFile.GetCurrentTrack() - 1);
-        player.PlayTheSong(mediaFile.GetTrackPath(mediaFile.GetCurrentTrack()));
-    } else {
+        break;
+    case KEYC_PAUSE:
+        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL)
+            player.PauseTheSong();
+        break;
+    case KEYC_RESUME:
+        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL)
+            player.ResumeTheSong();
+        break;
+    case KEYC_NEXT:
+        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
+            UpdateCurrentAndNextTrack(mediaFile.GetCurrentTrack() + 1);
+            player.PlayTheSong(mediaFile.GetTrackPath(mediaFile.GetCurrentTrack()));
+        }
+        break;
+    case KEYC_PREV:
+        if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
+            UpdateCurrentAndNextTrack(mediaFile.GetCurrentTrack() - 1);
+            player.PlayTheSong(mediaFile.GetTrackPath(mediaFile.GetCurrentTrack()));
+        }
+        break;
+    case KEYC_VOLUME_DOWN:
+        player.TurnVolumeDown();
+        break;
+    case '=':
+        player.TurnVolumeUp();
+        break;
+    default:
         if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
             UpdateCurrentAndNextTrack(key);
             Mix_HookMusicFinished(MusicFinished);
         }
         player.PlayTheSong(mediaFile.GetTrackPath(key));
+        break;
     }
 }
 
@@ -94,11 +127,17 @@ void Controller::Run(void)
 }
 
 
+bool Controller::IsOK(void)
+{
+    return ok;
+}
+
 /* constructor/destructor */
 
 Controller::Controller(int argc, char *argv[]) : ui()
 {
     exePath = std::filesystem::current_path();
+    ok = true;
     if (argc >= 2) {
         ParseArgument(argc, argv);
     } else {        // we go normal mode when no argument is present

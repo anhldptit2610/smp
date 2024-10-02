@@ -1,13 +1,27 @@
-#include <Player.h>
+#include "Player.h"
 
 Mix_Music *Player::song = nullptr;
 
-Player::Player() : running(false) 
+Player::Player() : running(false), volume(10)
 {
 }
 
 Player::~Player()
 {
+}
+
+void Player::TurnVolumeUp(void)
+{
+    if (volume < 10)
+        volume++;
+    Mix_VolumeMusic(12.8 * volume);
+}
+
+void Player::TurnVolumeDown(void)
+{
+    if (volume > 0)
+        volume--;
+    Mix_VolumeMusic(12.8 * volume);
 }
 
 void Player::PlayTheSong(std::string path)

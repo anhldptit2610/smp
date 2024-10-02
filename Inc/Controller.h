@@ -16,6 +16,8 @@ private:
     std::string path;
     UI ui;
     Player player;
+    bool ok;
+
     void ParseArgument(int argc, char *argv[]);
 public:
     Controller(int argc, char *argv[]);
@@ -25,6 +27,7 @@ public:
     void UpdateScreen(MediaFile& mediaFile);
     void InputHandler(MediaFile& mediaFile, int key, bool* quit);
     void PlayMusicFromDirectory(void);
+    bool IsOK(void);
 };
 
 int InitSDL(void);

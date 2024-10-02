@@ -11,7 +11,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
 
     Controller sol(argc, argv);
-    sol.Run();
+    if (sol.IsOK())
+        sol.Run();
 
     DestroySDL();
 

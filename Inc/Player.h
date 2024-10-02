@@ -9,6 +9,7 @@ class Player {
 private:
     bool running;
     static Mix_Music *song;
+    int volume;
 public:
     Player();
     ~Player();
@@ -17,6 +18,8 @@ public:
     void PauseTheSong(void);
     void ResumeTheSong(void);
     void StopTheSong(void);
+    void TurnVolumeUp(void);
+    void TurnVolumeDown(void);
 
     friend void PlayWithoutObject(std::string path);
 };

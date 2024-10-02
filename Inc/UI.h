@@ -16,7 +16,8 @@ public:
     void DirectoryLayout(FILELIST& mediaList);
     void Test(void);
     int GetInput(void);
-    void ClearWindow(WINDOW* win);
+    void ClearWindowButBox(WINDOW* win);
+    void ClearAllWindow(WINDOW* win);
 
     /* getter/setter */
     void UpdateMaxReach(int maxReach);
