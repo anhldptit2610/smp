@@ -21,25 +21,18 @@ MediaFile::~MediaFile()
 
 void MediaFileManage::UpdateMetadata(int index, int key, std::string val)
 {
-    list[index]->GetMetadata().UpdateMetadata(list[index]->GetPath(), key, val);
+    list[index]->GetMetadata().Update(list[index]->GetPath(), key, val);
 }
 
 /* getter/setter */
 
 std::string MediaFileManage::GetTrackPath(int n) { return list[n]->GetPath(); }
-
 int MediaFileManage::GetTotalTrack(void) { return totalTrack; }
-
 int MediaFileManage::GetNextTrack(void) { return nextTrack; }
-
 int MediaFileManage::GetCurrentTrack(void) { return currentTrack; }
-
 void MediaFileManage::SetTotalTrack(int n) { totalTrack = n; }
-
 void MediaFileManage::SetNextTrack(int n) { nextTrack = n; }
-
 void MediaFileManage::SetCurrentTrack(int n) { currentTrack = n; }
-
 FILELIST& MediaFileManage::GetMediaList(void) { return list; }
 
 /* constructor/destructor */

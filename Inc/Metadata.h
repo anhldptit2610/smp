@@ -24,7 +24,8 @@ private:
     unsigned int track;
     std::string genre;
 public:
-    void UpdateMetadata(std::string filePath, int key, std::string val);
+    void Update(std::string filePath, int key, std::string val);
+
     /* getter/setter */
     std::string GetTitle(void);
     std::string GetArtist(void);

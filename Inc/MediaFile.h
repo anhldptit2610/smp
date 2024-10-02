@@ -28,6 +28,8 @@ private:
     int nextTrack;
     int currentTrack;
 public:
+    void UpdateMetadata(int index, int key, std::string val);
+
     /* getter/setter */
     int GetTotalTrack(void);
     void SetTotalTrack(int n);
@@ -37,8 +39,6 @@ public:
     void SetCurrentTrack(int n);
     std::string GetTrackPath(int n);
     FILELIST& GetMediaList(void);
-
-    void UpdateMetadata(int index, int key, std::string val);
 
     /* constructor/destructor */
     MediaFileManage();

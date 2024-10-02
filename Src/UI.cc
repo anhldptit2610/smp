@@ -101,12 +101,12 @@ void UI::ResizeWindow(WINDOW *win, int newHeight, int newWidth)
     box(win, 0, 0);
 }
 
-void UI::DrawDirectoryLeftWin(FILELIST& list)
+void UI::DrawDirectoryLeftWin(FILELIST& list, int hl)
 {
     ClearWindowButBox(leftWin);
     mvwprintw(leftWin, 0, 40, " Choose media file ");
     for (int y = 1, i = 25 * (pagination - 1); i < (25 * (pagination - 1) + 25) && i < list.size(); i++) {
-        if (i == highlight)
+        if (i == hl)
             wattron(leftWin, A_REVERSE);
         mvwprintw(leftWin, y, 1, list[i]->GetPath().c_str());
         wattroff(leftWin, A_REVERSE);
@@ -117,7 +117,7 @@ void UI::DrawDirectoryLeftWin(FILELIST& list)
 
 void UI::DirectoryLayout(FILELIST& list)
 {
-    DrawDirectoryLeftWin(list);
+    DrawDirectoryLeftWin(list, highlight);
     PrintMetadata(rightWin, list[highlight]->GetMetadata(), -1);
     mvwprintw(rightWin, 0, 10, " Metadata ");
     wrefresh(rightWin);
@@ -125,7 +125,7 @@ void UI::DirectoryLayout(FILELIST& list)
 
 void UI::EditMetadata(FILELIST& list)
 {
-    DrawDirectoryLeftWin(list);
+    DrawDirectoryLeftWin(list, (mainWindow == LEFT) ? highlight : lastLeftIndex);
     if (mainWindow == RIGHT)
         PrintMetadata(rightWin, list[lastLeftIndex]->GetMetadata(), highlight);
     else if (mainWindow == LEFT)

@@ -22,15 +22,16 @@ private:
 
     void ParseArgument(int argc, char *argv[]);
 public:
-    Controller(int argc, char *argv[]);
-    ~Controller();
 
     void Run(void);
     void UpdateScreen(MediaFileManage& fileManage);
-    // void InputHandler(MediaFileManage& fileManage, KEY key, bool* quit);
     void InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, std::string str = "");
     void PlayMusicFromDirectory(void);
     bool IsOK(void);
+
+    /* constructor/destructor */
+    Controller(int argc, char *argv[]);
+    ~Controller();
 };
 
 int InitSDL(void);

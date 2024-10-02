@@ -38,7 +38,7 @@ void PrintMetadata(WINDOW *win, std::string path, int key)
     }
 }
 
-void Metadata::UpdateMetadata(std::string filePath, int key, std::string val)
+void Metadata::Update(std::string filePath, int key, std::string val)
 {
     TagLib::FileRef file(filePath.c_str());
 

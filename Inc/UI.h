@@ -30,7 +30,7 @@ public:
     void ClearWindowButBox(WINDOW* win);
     void ClearWindow(WINDOW* win);
     void ResizeWindow(WINDOW *win, int newHeight, int newWidth);
-    void DrawDirectoryLeftWin(FILELIST& list);
+    void DrawDirectoryLeftWin(FILELIST& list, int highlight);
     int GetMainSide(void);
     int GetLastLeftIndex(void);
 
