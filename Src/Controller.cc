@@ -25,18 +25,22 @@ void Controller::ParseArgument(int argc, char *argv[])
     int opt;
     std::string str;
 
+    auto SetWorkPath = [this](std::string _path, int mode) -> void {
+            workPath = _path;
+            mode = mode;
+            BrowsePath(workPath);
+    };
+
     while ((opt = getopt(argc, argv, "d:e:")) != -1) {
         switch (opt) {
         case 'd':
-            str = optarg;       // TODO: make a lambda function for set workPath
+            str = optarg;
             if (!std::filesystem::is_directory(str)) {
                 std::cout << "It's a file..." << std::endl;
                 ok = false;
                 return;
             }
-            workPath = str;
-            mode = OPTION_PLAY_MUSIC_DIRECTORY;
-            BrowsePath(workPath);
+            SetWorkPath(str, OPTION_PLAY_MUSIC_DIRECTORY);
             break;
         case 'e':
             if (optarg == NULL) {
@@ -44,10 +48,7 @@ void Controller::ParseArgument(int argc, char *argv[])
                 return;
             }
             str = optarg;
-            workPath = str;
-            mode = OPTION_EDIT_METADATA;
-            // ui.ResizeWindow(ui.GetMainWindow(), EDIT_METADATA_WINDOW_HEIGHT, EDIT_METADATA_WINDOW_WIDTH);
-            BrowsePath(workPath);
+            SetWorkPath(str, OPTION_EDIT_METADATA);
             break;
         default:
             break;
@@ -81,8 +82,6 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
     case FN_KEY:
         switch (key.second) {
             case KEYC_QUIT:
-                if (Mix_PlayingMusic())
-                    Mix_CloseAudio();
                 *quit = true;
                 break;
             case KEYC_PAUSE:
@@ -108,7 +107,7 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
             case KEYC_VOLUME_DOWN:
                 player.TurnVolumeDown();
                 break;
-            case '=':
+            case KEYC_VOLUME_UP:
                 player.TurnVolumeUp();
                 break;
             default:

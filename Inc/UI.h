@@ -19,18 +19,18 @@ private:
     int pagination;
     int lastLeftIndex;
     int listMaxReach = 0;
-    WINDOW *mainWin = nullptr;
-    WINDOW *sideWin = nullptr;
+    WINDOW *leftWin = nullptr;
+    WINDOW *rightWin = nullptr;
 public:
     void DirectoryLayout(FILELIST& mediaList);
     void EditMetadata(FILELIST& list);
     void InputString(void);
-    void Test(void);
     KEY GetInput(void);
     std::string GetStringInput(void);
     void ClearWindowButBox(WINDOW* win);
-    void ClearAllWindow(WINDOW* win);
+    void ClearWindow(WINDOW* win);
     void ResizeWindow(WINDOW *win, int newHeight, int newWidth);
+    void DrawDirectoryLeftWin(FILELIST& list);
     int GetMainSide(void);
     int GetLastLeftIndex(void);
 

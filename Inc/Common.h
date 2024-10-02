@@ -19,15 +19,15 @@ enum KEY_TYPE {
     UNKNOWN_KEY,
 };
 
-#define KEYC_RETURN                      '\n'
-#define KEYC_PAUSE                      'p'                   
-#define KEYC_NEXT                       'n'
-#define KEYC_PREV                       'b'
-#define KEYC_RESUME                     'r'
-#define KEYC_QUIT                       'q'
-#define KEYC_BACK                       'k'
-#define KEYC_VOLUME_UP                  '='
-#define KEYC_VOLUME_DOWN                '-'
+#define KEYC_RETURN                     '\n'
+#define KEYC_PAUSE                      112                   
+#define KEYC_NEXT                       110
+#define KEYC_PREV                       98
+#define KEYC_RESUME                     114
+#define KEYC_QUIT                       113
+#define KEYC_BACK                       107
+#define KEYC_VOLUME_UP                  61 
+#define KEYC_VOLUME_DOWN                45
 
 #define KEY                             std::pair<int, int>
 

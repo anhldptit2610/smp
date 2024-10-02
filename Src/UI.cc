@@ -4,36 +4,13 @@
 static int highlight = 0;
 void PrintMetadata(WINDOW *win, Metadata& metadata, int highlight = -1);
 
-WINDOW * UI::GetMainWindow(void)
-{
-    return mainWin;
-}
-
-WINDOW * UI::GetSideWindow(void)
-{
-    return sideWin;
-}
-
-
-int GetHighlight(void)
-{
-    return highlight;
-}
-
-void UpdateHighlight(int n)
-{
-    highlight = n;
-}
-
-int UI::GetMainSide(void)
-{
-    return mainWindow;
-}
-
-int UI::GetLastLeftIndex(void)
-{
-    return lastLeftIndex;
-}
+/* getter/setter */
+WINDOW * UI::GetMainWindow(void) { return leftWin; }
+WINDOW * UI::GetSideWindow(void) { return rightWin; }
+int GetHighlight(void) { return highlight; }
+void UpdateHighlight(int n) { highlight = n; }
+int UI::GetMainSide(void) { return mainWindow; }
+int UI::GetLastLeftIndex(void) { return lastLeftIndex; }
 
 void UI::UpdateMaxReach(int _mr) 
 {
@@ -41,7 +18,7 @@ void UI::UpdateMaxReach(int _mr)
     listMaxReach = maxReach;
 }
 
-void UI::ClearAllWindow(WINDOW* win)
+void UI::ClearWindow(WINDOW* win)
 {
     clear();
     wclear(win);
@@ -57,30 +34,30 @@ void UI::ClearWindowButBox(WINDOW *win)
 std::string UI::GetStringInput(void)
 {
     char str[50];
+
     echo();
-    mvwgetnstr(mainWin, 1, 1, str, sizeof(str) - 1);
+    mvwgetnstr(leftWin, 1, 1, str, sizeof(str) - 1);
     noecho();
+
     return str;
 }
 
 KEY UI::GetInput(void)
 {
-    int opt = wgetch(mainWin);
+    int opt = wgetch(leftWin);
 
     switch (opt) {
     case KEY_UP:
         highlight--;
-        if ((highlight + 1 <= 25 * (pagination - 1)) && (pagination > 1)) {
+        if ((highlight + 1 <= 25 * (pagination - 1)) && (pagination > 1))
             pagination--;
-        }
         if (highlight == minReach)
             highlight = 0;
         break;
     case KEY_DOWN:
         highlight++;
-        if (highlight + 1 > 25 * pagination) {
+        if (highlight + 1 > 25 * pagination)
             pagination++;
-        }
         if (highlight == maxReach)
             highlight = maxReach - 1;
         break; 
@@ -99,15 +76,14 @@ KEY UI::GetInput(void)
             maxReach = listMaxReach;
         }
         break;
-    // TODO: make these magic number disappear
-    case 'p':
-    case 'q':
-    case 'r':
-    case 'b':
-    case 'n':
-    case 'k':
-    case '-':
-    case '=':
+    case KEYC_PAUSE:
+    case KEYC_QUIT:
+    case KEYC_RESUME:
+    case KEYC_BACK:
+    case KEYC_NEXT:
+    case KEYC_PREV:
+    case KEYC_VOLUME_DOWN:
+    case KEYC_VOLUME_UP:
         return KEY(FN_KEY, opt);
     case KEYC_RETURN:
         return KEY(RET_KEY, highlight);
@@ -115,11 +91,6 @@ KEY UI::GetInput(void)
         break;
     }
     return KEY(UNKNOWN_KEY, -1);      // nothing special was pressed
-}
-
-void UI::Test(void)
-{
-    mvwprintw(mainWin, 1, 1, "Hello world");
 }
 
 void UI::ResizeWindow(WINDOW *win, int newHeight, int newWidth)
@@ -130,58 +101,46 @@ void UI::ResizeWindow(WINDOW *win, int newHeight, int newWidth)
     box(win, 0, 0);
 }
 
-void UI::DirectoryLayout(FILELIST& list)
+void UI::DrawDirectoryLeftWin(FILELIST& list)
 {
-    int y = 1;
-    MediaFileManage& fileManage = GetFileManage();
-
-    ClearWindowButBox(mainWin);
-    mvwprintw(mainWin, 0, 40, " Choose media file ");
-    for (int i = 25 * (pagination - 1); i < (25 * (pagination - 1) + 25) && i < list.size(); i++) {
+    ClearWindowButBox(leftWin);
+    mvwprintw(leftWin, 0, 40, " Choose media file ");
+    for (int y = 1, i = 25 * (pagination - 1); i < (25 * (pagination - 1) + 25) && i < list.size(); i++) {
         if (i == highlight)
-            wattron(mainWin, A_REVERSE);
-        mvwprintw(mainWin, y, 1, list[i]->GetPath().c_str());
-        wattroff(mainWin, A_REVERSE);
+            wattron(leftWin, A_REVERSE);
+        mvwprintw(leftWin, y, 1, list[i]->GetPath().c_str());
+        wattroff(leftWin, A_REVERSE);
         y++;
     }
-    wrefresh(mainWin);
-    PrintMetadata(sideWin, list[highlight]->GetMetadata(), -1);
-    mvwprintw(sideWin, 0, 10, " Metadata ");
-    wrefresh(sideWin);
+    wrefresh(leftWin);
+}
+
+void UI::DirectoryLayout(FILELIST& list)
+{
+    DrawDirectoryLeftWin(list);
+    PrintMetadata(rightWin, list[highlight]->GetMetadata(), -1);
+    mvwprintw(rightWin, 0, 10, " Metadata ");
+    wrefresh(rightWin);
 }
 
 void UI::EditMetadata(FILELIST& list)
 {
-    int y = 1;
-
-    ClearWindowButBox(mainWin);
-    mvwprintw(mainWin, 0, 40, " Choose media file ");
-    for (int i = 25 * (pagination - 1); i < (25 * (pagination - 1) + 25) && i < list.size(); i++) {
-        if (i == highlight && mainWindow == LEFT)
-            wattron(mainWin, A_REVERSE);
-        mvwprintw(mainWin, y, 1, list[i]->GetPath().c_str());
-        wattroff(mainWin, A_REVERSE);
-        y++;
-    }
-    wrefresh(mainWin);
-    if (mainWindow == RIGHT) {
-        PrintMetadata(sideWin, list[lastLeftIndex]->GetMetadata(), highlight);
-    // if (mainWindow == LEFT)
-    } else if (mainWindow == LEFT) {
-        PrintMetadata(sideWin, list[highlight]->GetMetadata(), -1);
-    }
-    // PrintMetadata(mainWin, list[0]->GetMetadata(), highlight + 1);
-    mvwprintw(sideWin, 0, 8, "Edit Metadata");
-    wrefresh(sideWin);
+    DrawDirectoryLeftWin(list);
+    if (mainWindow == RIGHT)
+        PrintMetadata(rightWin, list[lastLeftIndex]->GetMetadata(), highlight);
+    else if (mainWindow == LEFT)
+        PrintMetadata(rightWin, list[highlight]->GetMetadata(), -1);
+    mvwprintw(rightWin, 0, 8, "Edit Metadata");
+    wrefresh(rightWin);
 }
 
 void UI::InputString(void)
 {
-    ClearAllWindow(mainWin);
-    ClearAllWindow(sideWin);
+    ClearWindow(leftWin);
+    ClearWindow(rightWin);
     refresh();
-    ResizeWindow(mainWin, INPUT_WINDOW_HEIGHT, INPUT_WINDOW_WIDTH);
-    mvwprintw(mainWin, 0, 1, "Enter a string: ");
+    ResizeWindow(leftWin, INPUT_WINDOW_HEIGHT, INPUT_WINDOW_WIDTH);
+    mvwprintw(leftWin, 0, 1, "Enter a string: ");
 }
 
 void PrintMetadata(WINDOW *win, Metadata& metadata, int highlight)
@@ -200,6 +159,15 @@ void PrintMetadata(WINDOW *win, Metadata& metadata, int highlight)
 
 /* constructor/destructor */
 
+void CreateWindow(WINDOW **win, int height, int width, int startY, int startX)
+{
+    *win = newwin(height, width, startY, startX);  
+    keypad(*win, TRUE);
+    box(*win, 0, 0);
+    refresh();
+    wrefresh(*win);
+}
+
 UI::UI()
 {
     initscr();
@@ -208,30 +176,18 @@ UI::UI()
     keypad(stdscr, TRUE);
     curs_set(0);
 
-    mainWin = newwin(MEDIA_LIST_WINDOW_HEIGHT, MEDIA_LIST_WINDOW_WIDTH, 0, 0);  
-    keypad(mainWin, TRUE);
-    box(mainWin, 0, 0);
-    // refresh();
-    // wrefresh(mainWin);
-
-    sideWin = newwin(MEDIA_LIST_WINDOW_HEIGHT, 30, 0, MEDIA_LIST_WINDOW_WIDTH);  
-    keypad(sideWin, TRUE);
-    box(sideWin, 0, 0);
-    // refresh();
-    // wrefresh(sideWin);
+    CreateWindow(&leftWin, MEDIA_LIST_WINDOW_HEIGHT, MEDIA_LIST_WINDOW_WIDTH, 0, 0);
+    CreateWindow(&rightWin, MEDIA_LIST_WINDOW_HEIGHT, 30, 0, MEDIA_LIST_WINDOW_WIDTH);
 
     highlight = 0;
     pagination = 1;
     mainWindow = LEFT;
     lastLeftIndex = 0;
-
-    // ClearAllWindow(mainWin);
-    // ClearAllWindow(sideWin);
 }
 
 UI::~UI()
 {
-    delwin(mainWin);
-    delwin(sideWin);
+    delwin(leftWin);
+    delwin(rightWin);
     endwin();
 }
