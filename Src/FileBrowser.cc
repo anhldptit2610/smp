@@ -11,12 +11,14 @@ bool IsMP4File(const std::filesystem::directory_entry& fileEntry)
     return (fileEntry.path().extension() == ".mp4");
 }
 
-void BrowsePath(FILELIST& list, std::string bPath)
+bool IsPlaylistFile(const std::filesystem::directory_entry& fileEntry)
+{
+    return (fileEntry.path().extension() == ".playlist");
+}
+
+void BrowsePath(FILELIST& list, std::string bPath, int mode)
 {
     namespace fs = std::filesystem;
-
-    // MediaFileManage& fileManage = GetFileManage();
-    // FILELIST& list = fileManage.GetMediaList();
 
     list.clear();
 
@@ -36,9 +38,10 @@ void BrowsePath(FILELIST& list, std::string bPath)
             list.push_back(mf);
         }
     } else {
-        for (const fs::directory_entry& dir_entry : fs::recursive_directory_iterator(bPath)) {
-            if (IsMP3File(dir_entry) || IsMP4File(dir_entry)) {
-                std::shared_ptr<MediaFile> mf = std::make_shared<MediaFile>(dir_entry.path());
+        for (const fs::directory_entry& dirEntry : fs::recursive_directory_iterator(bPath)) {
+            if ((IsMP3File(dirEntry) || IsMP4File(dirEntry)) || 
+                (IsPlaylistFile(dirEntry) && (mode == OPTION_PLAYLIST_DIR || mode == OPTION_LIST_PLAYLIST))) {
+                std::shared_ptr<MediaFile> mf = std::make_shared<MediaFile>(dirEntry.path());
                 list.push_back(mf);
             }
         }

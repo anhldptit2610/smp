@@ -6,6 +6,6 @@
 #include <filesystem>
 #include <vector>
 
-void BrowsePath(FILELIST& list, std::string path);
+void BrowsePath(FILELIST& list, std::string bPath, int mode);
 
 #endif

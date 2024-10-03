@@ -24,6 +24,7 @@ private:
     bool ok;
 
     void ParseArgument(int argc, char *argv[]);
+    void SwitchMode(int newMode);
 public:
 
     void Run(void);
