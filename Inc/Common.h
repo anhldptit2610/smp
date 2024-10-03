@@ -28,6 +28,9 @@ enum KEY_TYPE {
 #define KEYC_BACK                       107
 #define KEYC_VOLUME_UP                  61 
 #define KEYC_VOLUME_DOWN                45
+#define KEYC_EDIT                       101
+#define KEYC_ADD                        97
+#define KEYC_DELETE                     100
 
 #define KEY                             std::pair<int, int>
 
@@ -37,6 +40,8 @@ enum OPTION {
     OPTION_PLAY_MUSIC_DIRECTORY,
     OPTION_EDIT_METADATA,
     OPTION_INPUT_STRING,
+    OPTION_CREATE_PLAYLIST,
+    OPTION_PLAYLIST_FILE,
 };
 
 #endif

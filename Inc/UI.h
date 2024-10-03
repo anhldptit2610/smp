@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include "FileBrowser.h"
+#include "Playlist.h"
 #include <ncurses.h>
 #include "Metadata.h"
 

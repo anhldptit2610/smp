@@ -1,5 +1,6 @@
 #include "UI.h"
 #include "Metadata.h"
+#include "Playlist.h"
 
 static int highlight = 0;
 void PrintMetadata(WINDOW *win, Metadata& metadata, int highlight = -1);
@@ -82,6 +83,9 @@ KEY UI::GetInput(void)
     case KEYC_BACK:
     case KEYC_NEXT:
     case KEYC_PREV:
+    case KEYC_ADD:
+    case KEYC_DELETE:
+    case KEYC_EDIT:
     case KEYC_VOLUME_DOWN:
     case KEYC_VOLUME_UP:
         return KEY(FN_KEY, opt);

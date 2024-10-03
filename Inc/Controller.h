@@ -5,6 +5,7 @@
 #include "FileBrowser.h"
 #include "Player.h"
 #include "UI.h"
+#include "Playlist.h"
 #include "MediaFile.h"
 #include "Metadata.h"
 
@@ -12,10 +13,12 @@ class Controller {
 private:
     UI ui;
     Player player;
+    Playlist playlist;
 
     std::filesystem::path exePath;
     std::filesystem::path workPath;
     int mode = OPTION_PLAY_MUSIC_NORMAL;
+    int prevMode;
     int fileKey;
     std::string path;
     bool ok;
