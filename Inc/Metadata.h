@@ -22,6 +22,9 @@ private:
     unsigned int year;
     std::string comment;
     unsigned int track;
+    unsigned int length;
+    unsigned int min;
+    unsigned int sec;
     std::string genre;
 public:
     void Update(std::string filePath, int key, std::string val);
@@ -33,6 +36,10 @@ public:
     std::string GetYearInString(void);
     std::string GetTrackInString(void);
     std::string GetComment(void);
+    std::string GetLengthInString(void);
+    unsigned int GetLength(void);
+    unsigned int GetMin(void);
+    unsigned int GetSec(void);
     unsigned int GetTrack(void);
     std::string GetGenre(void);
     void SetTitle(std::string);

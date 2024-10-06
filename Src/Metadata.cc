@@ -94,6 +94,10 @@ std::string Metadata::GetYearInString(void) { return std::to_string(year); }
 std::string Metadata::GetComment(void) { return comment; }
 std::string Metadata::GetTrackInString(void) { return std::to_string(track); }
 std::string Metadata::GetGenre(void) { return genre; }
+std::string Metadata::GetLengthInString(void) { return std::to_string(length); }
+unsigned int Metadata::GetLength(void) { return length; }
+unsigned int Metadata::GetMin(void) { return min; }
+unsigned int Metadata::GetSec(void) { return sec; }
 void Metadata::SetTitle(std::string _title) { title = _title; }
 void Metadata::SetArtist(std::string _artist) { artist = _artist; }
 void Metadata::SetAlbum(std::string _album) { album = _album; }
@@ -108,6 +112,7 @@ Metadata::Metadata(std::string filePath)
 
     if (!f.isNull() && f.tag()) {
         TagLib::Tag *tag = f.tag();
+
         title = tag->title().to8Bit();
         artist = tag->artist().to8Bit();
         album = tag->album().to8Bit();
@@ -115,6 +120,12 @@ Metadata::Metadata(std::string filePath)
         comment = tag->comment().to8Bit();
         track = tag->track();
         genre = tag->genre().to8Bit();
+    }
+    if (!f.isNull() && f.audioProperties()) {
+        TagLib::AudioProperties *properties = f.audioProperties();
+        length = properties->length();
+        min = properties->length() / 60;
+        sec = properties->length() % 60;
     }
 }
 

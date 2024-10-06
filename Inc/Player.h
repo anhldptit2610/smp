@@ -7,14 +7,13 @@
 
 class Player {
 private:
-    bool running;
     static Mix_Music *song;
     int volume;
 public:
     Player();
     ~Player();
 
-    void PlayTheSong(std::string path);
+    void PlayTheSong(int index, std::string path);
     void PauseTheSong(void);
     void ResumeTheSong(void);
     void StopTheSong(void);

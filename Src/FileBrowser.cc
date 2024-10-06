@@ -1,6 +1,13 @@
 #include "FileBrowser.h"
 #include <fstream>
 
+
+// trim y from x
+PATH TrimThePath(PATH y, PATH x)
+{
+    return std::filesystem::relative(x, y);
+}
+
 bool IsMP3File(const std::filesystem::directory_entry& fileEntry)
 {
     return (fileEntry.path().extension() == ".mp3");
@@ -16,7 +23,7 @@ bool IsPlaylistFile(const std::filesystem::directory_entry& fileEntry)
     return (fileEntry.path().extension() == ".playlist");
 }
 
-void BrowsePath(FILELIST& list, std::string bPath, int mode)
+void BrowsePath(FILELIST& list, std::string exePath, std::string bPath, int mode)
 {
     namespace fs = std::filesystem;
 

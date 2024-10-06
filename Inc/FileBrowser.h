@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <vector>
 
-void BrowsePath(FILELIST& list, std::string bPath, int mode);
+PATH TrimThePath(PATH y, PATH x);
+void BrowsePath(FILELIST& list, std::string exePath, std::string bPath, int mode);
 
 #endif

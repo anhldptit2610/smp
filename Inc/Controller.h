@@ -13,7 +13,6 @@ class Controller {
 private:
     UI ui;
     Player player;
-    Playlist playlist;
 
     std::filesystem::path exePath;
     std::filesystem::path workPath;
@@ -25,6 +24,7 @@ private:
 
     void ParseArgument(int argc, char *argv[]);
     void SwitchMode(int newMode);
+    void SetWorkPath(FILELIST& list, std::string _path, int _mode);
 public:
 
     void Run(void);

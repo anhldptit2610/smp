@@ -4,7 +4,7 @@ CXXFLAGS = -g -Wall -std=c++20
 BUILD_DIR = build
 SRC_DIR = Src
 INC_DIR = Inc
-LIBS = -lncurses -ltag -lSDL2 -lSDL2_mixer
+LIBS = -lncurses -ltag -lSDL2 -lSDL2_mixer -lpthread -Wl,--no-as-needed
 INC = -I$(INC_DIR)
 
 

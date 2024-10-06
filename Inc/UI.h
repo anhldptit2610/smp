@@ -20,24 +20,22 @@ private:
     int pagination;
     int lastLeftIndex;
     int listMaxReach = 0;
-    WINDOW *leftWin = nullptr;
     WINDOW *rightWin = nullptr;
+    void DrawDirectoryLeftWin(std::string exePath, FILELIST& list, int highlight, int mode);
 public:
-    void DirectoryLayout(FILELIST& mediaList);
-    void EditMetadata(FILELIST& list);
+    void DirectoryLayout(std::string exePath, FILELIST& mediaList, int mode);
+    void EditMetadata(std::string exePath, FILELIST& list, int mode);
     void InputString(void);
     KEY GetInput(void);
     std::string GetStringInput(void);
     void ClearWindowButBox(WINDOW* win);
     void ClearWindow(WINDOW* win);
     void ResizeWindow(WINDOW *win, int newHeight, int newWidth);
-    void DrawDirectoryLeftWin(FILELIST& list, int highlight);
     int GetMainSide(void);
     int GetLastLeftIndex(void);
 
     /* getter/setter */
     void UpdateMaxReach(int maxReach);
-    WINDOW * GetMainWindow(void);
     WINDOW * GetSideWindow(void);
 
     /* constructor/destructor */
@@ -46,7 +44,8 @@ public:
 };
 
 int GetHighlight(void);
-
 void UpdateHighlight(int n);
+WINDOW * GetMainWindow(void);
+WINDOW * GetTimeWindow(void);
 
 #endif

@@ -17,9 +17,15 @@ void MusicFinished(void)
 {
     MediaFileManage& fileManage = GetFileManage();
 
-    fileManage.SetNextTrack(fileManage.GetNextTrack() + 1);
-    PlaySong(fileManage.GetTrackPath(fileManage.GetNextTrack()));
-    UpdateHighlight(fileManage.GetNextTrack());
+    // TODO: add option to turn off looping
+    SetPlayState(false);
+    KillTimeThread();
+    if (fileManage.IsLooping()) {
+        // fileManage.NextTrack();
+        // fileManage.SetNextTrack(fileManage.GetNextTrack() + 1);
+        PlaySong(fileManage.GetTrackPath(fileManage.GetNextTrack()));
+        UpdateHighlight(fileManage.GetCurrentTrack());
+    }
 }
 
 void Controller::SwitchMode(int newMode)
@@ -28,19 +34,20 @@ void Controller::SwitchMode(int newMode)
     mode = newMode;
 }
 
+void Controller::SetWorkPath(FILELIST& list, std::string _path, int _mode)
+{
+    workPath = _path;
+    mode = _mode;
+    BrowsePath(list, workPath, workPath, mode);
+    GetFileManage().SetTotalTrack(GetFileManage().GetMediaList().size());
+}
+
 void Controller::ParseArgument(int argc, char *argv[])
 {
     int opt;
     std::string str;
 
-    auto SetWorkPath = [this](FILELIST& list, std::string _path, int _mode) -> void {
-            workPath = _path;
-            mode = _mode;
-            BrowsePath(list, workPath, mode);
-            GetFileManage().SetTotalTrack(GetFileManage().GetMediaList().size());
-    };
-
-    while ((opt = getopt(argc, argv, "d:e:p:nl")) != -1) {
+    while ((opt = getopt(argc, argv, "d:e:p:n")) != -1) {
         switch (opt) {
         case 'd':
             str = optarg;
@@ -52,31 +59,29 @@ void Controller::ParseArgument(int argc, char *argv[])
             SetWorkPath(GetFileManage().GetMediaList(), str, OPTION_PLAY_MUSIC_DIRECTORY);
             break;
         case 'e':
-            if (optarg != NULL) {
-                str = optarg;
-                SetWorkPath(GetFileManage().GetMediaList(), str, OPTION_EDIT_METADATA);
-            } else {
-                ok = false;
-            }
+            str = optarg;
+            SetWorkPath(GetFileManage().GetMediaList(), str, OPTION_EDIT_METADATA);
             break;
         case 'p':
-            if (optarg != NULL) {
-                str = optarg;
-                SetWorkPath(GetFileManage().GetMediaList(), str, 
+            str = optarg;
+            SetWorkPath(GetFileManage().GetMediaList(), str, 
                     (std::filesystem::is_directory(str)) ? OPTION_PLAYLIST_DIR : OPTION_PLAYLIST_FILE);
-                GetFileManage().SetPlaylistPath(str);
-            } else {
-                ok = false;
-            }
+            GetFileManage().SetPlaylistPath(str);
             break;
         case 'n':
             prevMode = OPTION_CREATE_PLAYLIST;
             mode = OPTION_INPUT_STRING;
             break; 
-        case 'l':
-            SetWorkPath(GetFileManage().GetMediaList(), PLAYLIST_PATH, OPTION_LIST_PLAYLIST);
+        case '?':
+            if (optopt == 'p') {
+                str = PLAYLIST_PATH;
+                SetWorkPath(GetFileManage().GetMediaList(), str, OPTION_LIST_PLAYLIST);
+            } else {
+                ok = false;
+            }
             break;
         default:
+            ok = false;
             break;
         }
     }
@@ -85,15 +90,15 @@ void Controller::ParseArgument(int argc, char *argv[])
 void Controller::UpdateScreen(MediaFileManage& fileManage)
 {
     switch (mode) {
+    case OPTION_LIST_PLAYLIST:
     case OPTION_PLAY_MUSIC_DIRECTORY:
     case OPTION_PLAY_MUSIC_NORMAL:
     case OPTION_PLAYLIST_FILE:
     case OPTION_PLAYLIST_DIR:
-    case OPTION_LIST_PLAYLIST:
-        ui.DirectoryLayout(fileManage.GetMediaList());
+        ui.DirectoryLayout(workPath, fileManage.GetMediaList(), mode);
         break;
     case OPTION_EDIT_METADATA:
-        ui.EditMetadata(fileManage.GetMediaList());
+        ui.EditMetadata(exePath, fileManage.GetMediaList(), mode);
         break;
     case OPTION_INPUT_STRING:
         ui.InputString();
@@ -107,12 +112,19 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
 {
     auto BackToMainWindow = [this](int _mode) -> void {
         mode = _mode;
-        ui.ResizeWindow(ui.GetMainWindow(), MEDIA_LIST_WINDOW_HEIGHT, MEDIA_LIST_WINDOW_WIDTH);
+        ui.ResizeWindow(GetMainWindow(), MEDIA_LIST_WINDOW_HEIGHT, MEDIA_LIST_WINDOW_WIDTH);
          refresh();
     };
 
     auto CheckMode = [this](void) -> bool {
-        return (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL || mode == OPTION_PLAYLIST_FILE);
+        return (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL 
+                || mode == OPTION_PLAYLIST_FILE);
+    };
+
+    auto UpdateTrackInfoAndPlaySong = [this, &fileManage](int n) -> void {
+        UpdateCurrentAndNextTrack(fileManage.GetCurrentTrack() + 1);
+        UpdateHighlight(fileManage.GetCurrentTrack());
+        player.PlayTheSong(GetHighlight(), fileManage.GetTrackPath(fileManage.GetCurrentTrack()));
     };
 
     switch (key.first) {
@@ -122,25 +134,32 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
         switch (key.second) {
             case KEYC_QUIT:
                 *quit = true;
+                KillTimeThread();
                 break;
             case KEYC_PAUSE:
-                if (CheckMode())
-                    player.PauseTheSong();
-                break;
-            case KEYC_RESUME:
-                if (CheckMode())
-                    player.ResumeTheSong();
-                break;
-            case KEYC_NEXT:
                 if (CheckMode()) {
-                    UpdateCurrentAndNextTrack(fileManage.GetCurrentTrack() + 1);
-                    player.PlayTheSong(fileManage.GetTrackPath(fileManage.GetCurrentTrack()));
+                    SetPlayState(false);
+                    player.PauseTheSong();
                 }
                 break;
-            case KEYC_PREV:
+            case KEYC_RESUME:
                 if (CheckMode()) {
-                    UpdateCurrentAndNextTrack(fileManage.GetCurrentTrack() - 1);
-                    player.PlayTheSong(fileManage.GetTrackPath(fileManage.GetCurrentTrack()));
+                    SetPlayState(true);
+                    player.ResumeTheSong();
+                }
+                break;
+            case KEYC_NEXT:
+                if (CheckMode())
+                    UpdateTrackInfoAndPlaySong(fileManage.GetCurrentTrack() + 1);
+                break;
+            case KEYC_PREV:
+                if (CheckMode())
+                    UpdateTrackInfoAndPlaySong(fileManage.GetCurrentTrack() - 1);
+                break;
+            case KEYC_PLAYLIST_RET:
+                if (mode == OPTION_PLAYLIST_FILE) {
+                    SwitchMode(OPTION_LIST_PLAYLIST);
+                    SetWorkPath(fileManage.GetMediaList(), PLAYLIST_PATH, OPTION_LIST_PLAYLIST);
                 }
                 break;
             case KEYC_VOLUME_DOWN:
@@ -148,6 +167,10 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
                 break;
             case KEYC_VOLUME_UP:
                 player.TurnVolumeUp();
+                break;
+            case KEYC_LOOPING_TOGGLE:
+                if (CheckMode())
+                    fileManage.ToggleLooping();
                 break;
             case KEYC_ADD:
                 if (mode == OPTION_PLAYLIST_FILE) {
@@ -186,10 +209,8 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
             SwitchMode(OPTION_PLAYLIST_FILE);
         } else {
             UpdateCurrentAndNextTrack(key.second);
-            if (mode == OPTION_PLAY_MUSIC_DIRECTORY || mode == OPTION_PLAY_MUSIC_NORMAL) {
-                Mix_HookMusicFinished(MusicFinished);
-            }
-            player.PlayTheSong(fileManage.GetTrackPath(key.second));
+            Mix_HookMusicFinished(MusicFinished);
+            player.PlayTheSong(key.second, fileManage.GetTrackPath(key.second));
         }
         break;
     default:
@@ -233,7 +254,7 @@ Controller::Controller(int argc, char *argv[]) : ui()
     } else {        // we go normal mode when no argument is present
         mode = OPTION_PLAY_MUSIC_NORMAL;
         workPath = exePath;
-        BrowsePath(GetFileManage().GetMediaList(), workPath, mode);
+        BrowsePath(GetFileManage().GetMediaList(), exePath, workPath, mode);
     }
     ui.UpdateMaxReach(GetFileManage().GetTotalTrack());
 }
