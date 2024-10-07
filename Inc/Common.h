@@ -6,13 +6,14 @@
 #include <memory>
 #include <filesystem>
 #include <vector>
+#include <list>
 #include <atomic>
 #include <mutex>
 #include <thread>
 #include <chrono>
 
 #define MEDIA_LIST_WINDOW_HEIGHT        27
-#define MEDIA_LIST_WINDOW_WIDTH         100
+#define MEDIA_LIST_WINDOW_WIDTH         80
 #define EDIT_METADATA_WINDOW_HEIGHT     10
 #define EDIT_METADATA_WINDOW_WIDTH      30
 #define INPUT_WINDOW_HEIGHT             3
@@ -21,6 +22,7 @@
 enum KEY_TYPE {
     FN_KEY,
     RET_KEY,    
+    STRING,
     UNKNOWN_KEY,
 };
 

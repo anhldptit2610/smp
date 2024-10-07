@@ -21,8 +21,6 @@ void MusicFinished(void)
     SetPlayState(false);
     KillTimeThread();
     if (fileManage.IsLooping()) {
-        // fileManage.NextTrack();
-        // fileManage.SetNextTrack(fileManage.GetNextTrack() + 1);
         PlaySong(fileManage.GetTrackPath(fileManage.GetNextTrack()));
         UpdateHighlight(fileManage.GetCurrentTrack());
     }
@@ -190,20 +188,8 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
     case RET_KEY:
         if (mode == OPTION_EDIT_METADATA) {
             SwitchMode(OPTION_INPUT_STRING);
-        } else if (mode == OPTION_INPUT_STRING) {
-            if (prevMode == OPTION_EDIT_METADATA) {
-                fileManage.UpdateMetadata((ui.GetMainSide()) ? ui.GetLastLeftIndex() : 0, GetHighlight(), str);
-                BackToMainWindow(OPTION_EDIT_METADATA);
-            }  else if (prevMode == OPTION_PLAYLIST_FILE) {
-                fileManage.AddNewTrack(str);
-                BackToMainWindow(OPTION_PLAYLIST_FILE);
-                ui.UpdateMaxReach(GetFileManage().GetTotalTrack());
-            } else if (prevMode == OPTION_CREATE_PLAYLIST) {
-                std::string finalPath = PLAYLIST_PATH + str + ".playlist";
-                GetFileManage().CreateNewPlaylist(finalPath);
-                *quit = true;
-            }
         } else if (mode == OPTION_LIST_PLAYLIST) {
+            fileManage.SetPlaylistPath(fileManage.GetTrackPath(GetHighlight()));
             fileManage.ParsePlaylist(fileManage.GetTrackPath(GetHighlight()));
             ui.UpdateMaxReach(fileManage.GetTotalTrack());
             SwitchMode(OPTION_PLAYLIST_FILE);
@@ -211,6 +197,21 @@ void Controller::InputHandler(MediaFileManage& fileManage, bool* quit, KEY key, 
             UpdateCurrentAndNextTrack(key.second);
             Mix_HookMusicFinished(MusicFinished);
             player.PlayTheSong(key.second, fileManage.GetTrackPath(key.second));
+        }
+        break;
+    case STRING:
+        if (prevMode == OPTION_EDIT_METADATA) {
+            fileManage.UpdateMetadata((ui.GetMainSide()) ? ui.GetLastLeftIndex() : 0, GetHighlight(), str);
+            BackToMainWindow(OPTION_EDIT_METADATA);
+        }  else if (prevMode == OPTION_PLAYLIST_FILE) {
+            SwitchMode(OPTION_PLAYLIST_FILE);
+            fileManage.AddNewTrack(str);
+            BackToMainWindow(OPTION_PLAYLIST_FILE);
+            ui.UpdateMaxReach(GetFileManage().GetTotalTrack());
+        } else if (prevMode == OPTION_CREATE_PLAYLIST) {
+            std::string finalPath = PLAYLIST_PATH + str + ".playlist";
+            GetFileManage().CreateNewPlaylist(finalPath);
+            *quit = true;
         }
         break;
     default:
@@ -228,7 +229,7 @@ void Controller::Run(void)
     while (!quit) {
         UpdateScreen(fileManage);
         if (mode == OPTION_INPUT_STRING) {
-            pressKey.first = RET_KEY;
+            pressKey.first = STRING;
             inputString = ui.GetStringInput();
         } else {
             pressKey = ui.GetInput();

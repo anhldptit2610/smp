@@ -49,8 +49,8 @@ MediaFile::~MediaFile() { }
 
 void MediaFileManage::NextTrack(void)
 {
-    currentTrack = nextTrack;
-    nextTrack++;
+    currentTrack = nextTrack % totalTrack;
+    nextTrack = (nextTrack + 1) % totalTrack;
     SetMin(currentTrack);
     SetSec(currentTrack);
 }
@@ -58,14 +58,18 @@ void MediaFileManage::NextTrack(void)
 void MediaFileManage::DeleteTrack(int index)
 {
     list.erase(list.begin() + index);
-    totalTrack--;
+    if (totalTrack > 0)
+        totalTrack--;
 }
 
 void MediaFileManage::AddNewTrack(std::string val)
 {
-    std::shared_ptr<MediaFile> ptr = std::make_shared<MediaFile>(val);
-    list.push_back(ptr);
-    totalTrack++;
+    namespace fs = std::filesystem;
+    if (fs::exists(val) && fs::is_regular_file(val)) {
+        std::shared_ptr<MediaFile> ptr = std::make_shared<MediaFile>(val);
+        list.push_back(ptr);
+        totalTrack++;
+    }
 }
 
 void MediaFileManage::ParsePlaylist(std::string playlist)
